@@ -1,10 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Bell, LogOut, PlusCircle, Settings, User, Flag, Book, Folder } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,48 +13,45 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-interface User {
-  id: string;
-  displayName: string;
-  accountId: string;
-  accountTitle: string;
-  accountAlias: string | null;
-  currency: string;
-  accountStatus: number;
-  type: string;
-  tradingType: string;
-  businessType: string;
-  parent: {
-    accountId: string;
-    isMParent: boolean;
-    isMChild: boolean;
-  };
-}
-
-const mockUser: User = {
-  id: "123456",
-  displayName: "John Doe",
-  accountId: "U1234567",
-  accountTitle: "John&apos;s Investment Account",
-  accountAlias: "Primary Trading",
-  currency: "USD",
-  accountStatus: 1,
-  type: "INDIVIDUAL",
-  tradingType: "STKCASH",
-  businessType: "INDEPENDENT",
-  parent: {
-    accountId: "P9876543",
-    isMParent: false,
-    isMChild: true,
-  },
-};
+} from "./ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { getUserData } from "../services/auth";
+import { AccountDetailsDTO } from "../services/AccountDetailsDTO";
 
 export function DashboardComponent() {
-  const user = mockUser;
+  const [user, setUser] = useState<AccountDetailsDTO | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getUserData();
+        setUser(data);
+      } catch {
+        // Redirect to IB login page
+        window.location.href = "http://localhost:5001";
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-[#121212] text-gray-100">
+        <div className="text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  const userInitial = user.displayName ? user.displayName.charAt(0) : "U";
 
   return (
     <div className="flex h-screen bg-[#121212] text-gray-100">
@@ -139,7 +137,7 @@ export function DashboardComponent() {
               <Button variant="ghost" size="icon" className="rounded-full">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src="/placeholder-avatar.jpg" alt={user.displayName} />
-                  <AvatarFallback>{user.displayName.charAt(0)}</AvatarFallback>
+                  <AvatarFallback>{userInitial}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
@@ -189,7 +187,7 @@ export function DashboardComponent() {
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-gray-400">Currency</dt>
-                  <dd className="mt-1 text-sm text-gray-100">{user.currency}</dd>
+                  <dd className="mt-1 text-sm text-gray-100">{user.currency || "N/A"}</dd>
                 </div>
               </dl>
             </CardContent>
@@ -228,15 +226,15 @@ export function DashboardComponent() {
               <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
                 <div>
                   <dt className="text-sm font-medium text-gray-400">Parent Account ID</dt>
-                  <dd className="mt-1 text-sm text-gray-100">{user.parent.accountId}</dd>
+                  <dd className="mt-1 text-sm text-gray-100">{user.parent?.accountId || "N/A"}</dd>
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-gray-400">Is Parent Account</dt>
-                  <dd className="mt-1 text-sm text-gray-100">{user.parent.isMParent ? "Yes" : "No"}</dd>
+                  <dd className="mt-1 text-sm text-gray-100">{user.parent?.isMParent ? "Yes" : "No"}</dd>
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-gray-400">Is Child Account</dt>
-                  <dd className="mt-1 text-sm text-gray-100">{user.parent.isMChild ? "Yes" : "No"}</dd>
+                  <dd className="mt-1 text-sm text-gray-100">{user.parent?.isMChild ? "Yes" : "No"}</dd>
                 </div>
               </dl>
             </CardContent>
