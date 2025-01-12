@@ -6,7 +6,7 @@ axios.defaults.withCredentials = true;
 
 const API_PREFIX = 'http://localhost:3001/api/v1';
 
-export interface Position {
+export interface PortfolioPosition {
   symbol: string;
   position: number;
   marketPrice: number;
@@ -48,11 +48,11 @@ export const portfolioService = {
   /**
    * Retrieve Portfolio Positions for a specific account
    * @param accountId The ID of the account to retrieve positions for
-   * @returns Promise of Position[]
+   * @returns Promise of PortfolioPosition[]
    */
-  getPositions: async (accountId: string): Promise<Position[]> => {
+  getPositions: async (accountId: string): Promise<PortfolioPosition[]> => {
     try {
-      const response = await axios.get<Position[]>(`${API_PREFIX}/accounts/${accountId}/positions`, {
+      const response = await axios.get<PortfolioPosition[]>(`${API_PREFIX}/accounts/${accountId}/positions`, {
         headers: {
           "Content-Type": "application/json",
         },

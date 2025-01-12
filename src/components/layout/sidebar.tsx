@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
-import { LayoutDashboard, LineChart, Settings, FileText, BarChart3, ChevronLeft, ChevronRight, User } from "lucide-react";
+import { LayoutDashboard, LineChart, Settings, FileText, BarChart3, ChevronLeft, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -20,7 +20,6 @@ interface SidebarNavProps {
   onToggle: () => void;
 }
 
-// Define main navigation items
 const mainNavItems = [
   {
     title: "Dashboard",
@@ -47,45 +46,11 @@ const mainNavItems = [
 export function SidebarNav({ isOpen, onToggle }: SidebarNavProps) {
   const pathname = usePathname();
 
-  const renderNavItem = (item: typeof mainNavItems[0]) => (
-    <Tooltip key={item.href} delayDuration={0}>
-      <TooltipTrigger asChild>
-        <Link
-          href={item.href}
-          className={cn(
-            buttonVariants({ variant: "ghost" }),
-            "w-full flex items-center justify-center relative h-10",
-            pathname === item.href
-              ? "bg-muted hover:bg-muted"
-              : "hover:bg-muted"
-          )}
-        >
-          <item.icon className="h-5 w-5 absolute left-3" />
-          <span
-            className={cn(
-              "ml-3 absolute left-[40px] transition-[opacity,transform] duration-200",
-              isOpen 
-                ? "opacity-100 translate-x-0" 
-                : "opacity-0 -translate-x-2 pointer-events-none"
-            )}
-          >
-            {item.title}
-          </span>
-        </Link>
-      </TooltipTrigger>
-      {!isOpen && (
-        <TooltipContent side="right" className="flex items-center gap-4">
-          {item.title}
-        </TooltipContent>
-      )}
-    </Tooltip>
-  );
-
   return (
     <TooltipProvider>
       <aside
         className={cn(
-          "min-h-screen border-r bg-background relative transition-[width] duration-200 rounded-r-[32px]",
+          "min-h-screen border-r bg-black relative transition-[width] duration-200 rounded-r-[32px]",
           isOpen ? "w-64" : "w-[70px]"
         )}
       >

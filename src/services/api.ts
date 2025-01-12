@@ -1,28 +1,36 @@
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { Account } from "./AccountDTO";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 console.log("API Base URL:", API_URL);
 
+// Create axios instance with default config
 const api = axios.create({
   baseURL: API_URL,
+  timeout: 15000,
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 5000, // 5 second timeout
 });
 
 // Add response interceptor for better error handling
 api.interceptors.response.use(
   (response) => response,
-  (error: AxiosError) => {
-    if (error.code === "ECONNABORTED") {
-      throw new Error("Request timeout - Please try again");
+  (error) => {
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      throw new Error(error.response.data?.message || 'Server error');
+    } else if (error.request) {
+      // The request was made but no response was received
+      if (error.code === "ECONNABORTED") {
+        throw new Error("Request timeout - Please try again");
+      }
+      throw new Error("Network error - Please check your connection");
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      throw new Error("An unexpected error occurred");
     }
-    if (!error.response) {
-      throw new Error("Network error - Please check your connection or if the server is running");
-    }
-    throw error;
   }
 );
 
@@ -106,15 +114,8 @@ export const getAccountMetrics = async (): Promise<Account> => {
     const response = await api.get<Account>("/portfolio/account");
     return response.data;
   } catch (error) {
-    if (error instanceof Error) {
-      console.error("Error fetching account metrics:", error.message);
-      if (process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true") {
-        console.log("Falling back to mock data");
-        return mockAccountData;
-      }
-      throw error;
-    }
-    throw new Error("An unexpected error occurred");
+    console.error('Error fetching account metrics:', error);
+    throw error;
   }
 };
 
@@ -132,14 +133,8 @@ export const getPortfolioPositions = async () => {
     const response = await api.get("/portfolio/positions");
     return response.data;
   } catch (error) {
-    if (error instanceof Error) {
-      console.error("Error fetching portfolio positions:", error.message);
-      if (process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true") {
-        return mockPositions;
-      }
-      throw error;
-    }
-    throw new Error("An unexpected error occurred");
+    console.error('Error fetching portfolio positions:', error);
+    throw error;
   }
 };
 
@@ -152,13 +147,7 @@ export const getPortfolioAnalytics = async () => {
     const response = await api.get("/portfolio/analytics");
     return response.data;
   } catch (error) {
-    if (error instanceof Error) {
-      console.error("Error fetching portfolio analytics:", error.message);
-      if (process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true") {
-        return mockAnalytics;
-      }
-      throw error;
-    }
-    throw new Error("An unexpected error occurred");
+    console.error('Error fetching portfolio analytics:', error);
+    throw error;
   }
 };
