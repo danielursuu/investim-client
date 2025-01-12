@@ -54,19 +54,23 @@ export function SidebarNav({ isOpen, onToggle }: SidebarNavProps) {
           href={item.href}
           className={cn(
             buttonVariants({ variant: "ghost" }),
-            "w-full flex items-center",
+            "w-full flex items-center justify-center relative h-10",
             pathname === item.href
               ? "bg-muted hover:bg-muted"
-              : "hover:bg-muted",
-            isOpen ? "justify-start px-3" : "justify-center px-0"
+              : "hover:bg-muted"
           )}
         >
-          <item.icon className="h-5 w-5" />
-          {isOpen && (
-            <span className="ml-3">
-              {item.title}
-            </span>
-          )}
+          <item.icon className="h-5 w-5 absolute left-3" />
+          <span
+            className={cn(
+              "ml-3 absolute left-[40px] transition-[opacity,transform] duration-200",
+              isOpen 
+                ? "opacity-100 translate-x-0" 
+                : "opacity-0 -translate-x-2 pointer-events-none"
+            )}
+          >
+            {item.title}
+          </span>
         </Link>
       </TooltipTrigger>
       {!isOpen && (
@@ -81,19 +85,16 @@ export function SidebarNav({ isOpen, onToggle }: SidebarNavProps) {
     <TooltipProvider>
       <aside
         className={cn(
-          "min-h-screen border-r bg-background relative transition-[width] duration-300 ease-in-out",
+          "min-h-screen border-r bg-background relative transition-[width] duration-200 rounded-r-[32px]",
           isOpen ? "w-64" : "w-[70px]"
         )}
       >
         <div className="flex flex-col h-full">
           {/* Logo Section */}
-          <div className={cn(
-            "h-[70px] flex items-center",
-            isOpen ? "px-6" : "flex justify-center px-3"
-          )}>
-            <Link href="/" className={cn(
-              "relative",
-              isOpen ? "h-[40px] w-[150px]" : "h-[40px] w-[40px]"
+          <div className="h-[70px] flex items-center justify-center mb-8">
+            <div className={cn(
+              "relative transition-[width] duration-200",
+              isOpen ? "w-[200px]" : "w-[40px]"
             )}>
               <Image
                 src="/investim-logo.png"
@@ -101,8 +102,8 @@ export function SidebarNav({ isOpen, onToggle }: SidebarNavProps) {
                 width={150}
                 height={40}
                 className={cn(
-                  "absolute top-0 left-0 h-[40px] w-[200px]",
-                  !isOpen && "hidden"
+                  "absolute top-0 left-0 h-[40px] transition-opacity duration-200",
+                  isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
                 )}
                 priority
               />
@@ -112,19 +113,50 @@ export function SidebarNav({ isOpen, onToggle }: SidebarNavProps) {
                 width={40}
                 height={40}
                 className={cn(
-                  "absolute top-0 h-[40px] w-[40px]",
-                  isOpen && "hidden",
-                  !isOpen && "left-0"
+                  "absolute top-0 left-0 h-[40px] w-[40px] transition-opacity duration-200",
+                  isOpen ? "opacity-0 pointer-events-none" : "opacity-100"
                 )}
                 priority
               />
-            </Link>
+            </div>
           </div>
           
           {/* Main Navigation */}
           <div className="flex-1 flex flex-col">
             <nav className="space-y-2 px-3 py-4">
-              {mainNavItems.map(renderNavItem)}
+              {mainNavItems.map((item) => (
+                <Tooltip key={item.href} delayDuration={0}>
+                  <TooltipTrigger asChild>
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        buttonVariants({ variant: "ghost" }),
+                        "w-full flex items-center justify-center relative h-10",
+                        pathname === item.href
+                          ? "bg-muted hover:bg-muted"
+                          : "hover:bg-muted"
+                      )}
+                    >
+                      <item.icon className="h-5 w-5 absolute left-3" />
+                      <span
+                        className={cn(
+                          "ml-3 absolute left-[40px] transition-[opacity,transform] duration-200",
+                          isOpen 
+                            ? "opacity-100 translate-x-0" 
+                            : "opacity-0 -translate-x-2 pointer-events-none"
+                        )}
+                      >
+                        {item.title}
+                      </span>
+                    </Link>
+                  </TooltipTrigger>
+                  {!isOpen && (
+                    <TooltipContent side="right" className="flex items-center gap-4">
+                      {item.title}
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              ))}
             </nav>
 
             {/* Bottom Section */}
@@ -134,14 +166,15 @@ export function SidebarNav({ isOpen, onToggle }: SidebarNavProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 rounded-full border bg-background"
+                  className="h-8 w-8 rounded-full border bg-background hover:bg-muted"
                   onClick={onToggle}
                 >
-                  {isOpen ? (
-                    <ChevronLeft className="h-4 w-4" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4" />
-                  )}
+                  <ChevronLeft 
+                    className={cn(
+                      "h-4 w-4 transition-transform duration-200",
+                      !isOpen && "rotate-180"
+                    )}
+                  />
                 </Button>
               </div>
 
@@ -152,13 +185,19 @@ export function SidebarNav({ isOpen, onToggle }: SidebarNavProps) {
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="ghost"
-                        className={cn(
-                          "w-full flex items-center",
-                          isOpen ? "justify-start px-3" : "justify-center px-0"
-                        )}
+                        className="w-full flex items-center justify-center relative h-10"
                       >
-                        <Settings className="h-5 w-5" />
-                        {isOpen && <span className="ml-3">Settings</span>}
+                        <Settings className="h-5 w-5 absolute left-3" />
+                        <span
+                          className={cn(
+                            "ml-3 absolute left-[40px] transition-[opacity,transform] duration-200",
+                            isOpen 
+                              ? "opacity-100 translate-x-0" 
+                              : "opacity-0 -translate-x-2 pointer-events-none"
+                          )}
+                        >
+                          Settings
+                        </span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
@@ -185,21 +224,24 @@ export function SidebarNav({ isOpen, onToggle }: SidebarNavProps) {
                   <TooltipTrigger asChild>
                     <Button
                       variant="ghost"
-                      className={cn(
-                        "w-full flex items-center",
-                        isOpen ? "justify-start px-3" : "justify-center px-0"
-                      )}
+                      className="w-full flex items-center justify-center relative h-10"
                     >
-                      <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+                      <div className={cn(
+                        "h-9 w-9 rounded-full bg-secondary flex items-center justify-center absolute",
+                        isOpen ? "left-3" : "left-[calc(50%-18px)]"
+                      )}>
                         <User className="h-4 w-4" />
                       </div>
-                      {isOpen && (
-                        <div className="ml-3 flex flex-col items-start">
-                          <span className="text-sm text-muted-foreground">
-                            user@example.com
-                          </span>
-                        </div>
-                      )}
+                      <span
+                        className={cn(
+                          "ml-3 absolute left-[52px] text-sm text-muted-foreground transition-[opacity,transform] duration-200",
+                          isOpen 
+                            ? "opacity-100 translate-x-0" 
+                            : "opacity-0 -translate-x-2 pointer-events-none"
+                        )}
+                      >
+                        user@example.com
+                      </span>
                     </Button>
                   </TooltipTrigger>
                   {!isOpen && (
