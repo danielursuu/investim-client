@@ -3,21 +3,17 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
 import { 
   TrendingUp, 
   DollarSign, 
   ArrowUpRight, 
-  ArrowDownRight,
   Wallet,
   BarChart3,
-  PieChart,
   Activity,
   TrendingDown,
   RefreshCw
 } from "lucide-react";
 import { portfolioService } from "@/services";
-import axios from 'axios';
 import { cn } from "@/lib/utils";
 import { formatNumber } from '@/lib/formatNumber';
 import { Button } from "@/components/ui/button";
@@ -34,17 +30,6 @@ interface Position {
   currency: string;
 }
 
-interface Account {
-  id: string;
-  accountId: string;
-  cashBalance: number;
-  availableFunds: number;
-  excessLiquidity: number;
-  buyingPower: number;
-  leverage: number;
-  dayTradesRemaining: number;
-}
-
 interface Ledger {
   cashBalance: number;
   availableFunds: number;
@@ -56,14 +41,12 @@ interface Ledger {
 
 const Dashboard: React.FC = () => {
   const { toast } = useToast();
-  const [accounts, setAccounts] = useState<Account[]>([]);
-  const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
   const [positions, setPositions] = useState<Position[]>([]);
   const [ledger, setLedger] = useState<Ledger | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Calculate derived values
   const totalValue = React.useMemo(() => {
@@ -104,9 +87,9 @@ const Dashboard: React.FC = () => {
       }
     } catch (error) {
       console.error("Error fetching data:", error);
-      const errorMessage = axios.isAxiosError(error)
-        ? error.response?.data?.message || "Failed to fetch account details"
-        : "Failed to fetch account details";
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "Failed to fetch data";
       
       setError(errorMessage);
       toast({
@@ -124,18 +107,16 @@ const Dashboard: React.FC = () => {
     const fetchAccountData = async () => {
       try {
         const fetchedAccounts = await portfolioService.getAccounts();
-        setAccounts(fetchedAccounts);
         
         if (fetchedAccounts.length > 0) {
           const accountId = fetchedAccounts[0].accountId;
-          setSelectedAccount(accountId);
           await fetchData(accountId, false);
         }
       } catch (error) {
         console.error("Error fetching accounts:", error);
-        const errorMessage = axios.isAxiosError(error)
-          ? error.response?.data?.message || "Failed to fetch accounts"
-          : "Failed to fetch accounts";
+        const errorMessage = error instanceof Error 
+          ? error.message 
+          : "Failed to fetch account data";
         
         setError(errorMessage);
         toast({
@@ -153,24 +134,17 @@ const Dashboard: React.FC = () => {
 
   // Auto-refresh every 30 seconds
   useEffect(() => {
-    if (!selectedAccount) return;
-
     const intervalId = setInterval(() => {
-      fetchData(selectedAccount, false);
+      fetchData("", false);
     }, 30000);
 
     return () => clearInterval(intervalId);
-  }, [selectedAccount, fetchData]);
+  }, [fetchData]);
 
   const handleRefresh = useCallback(() => {
-    if (!selectedAccount || isRefreshing) return;
-    fetchData(selectedAccount, true);
-  }, [selectedAccount, isRefreshing, fetchData]);
-
-  const handleAccountChange = useCallback(async (accountId: string) => {
-    setSelectedAccount(accountId);
-    await fetchData(accountId, false);
-  }, [fetchData]);
+    if (isRefreshing) return;
+    fetchData("", true);
+  }, [isRefreshing, fetchData]);
 
   // Loading state
   if (isLoading) {
@@ -194,7 +168,7 @@ const Dashboard: React.FC = () => {
         <CardContent className="space-y-4">
           <p className="text-muted-foreground">{error}</p>
           <Button
-            onClick={() => selectedAccount && fetchData(selectedAccount, false)}
+            onClick={() => fetchData("", false)}
             variant="outline"
             className="w-full"
           >
@@ -281,14 +255,16 @@ const Dashboard: React.FC = () => {
   );
 };
 
+Dashboard.displayName = "Dashboard";
+
 // Metric card component
 const MetricCard: React.FC<{
   title: string;
-  value: string | number;
+  value: string;
+  icon: React.ReactNode;
   subtext?: string;
-  icon?: React.ReactNode;
   trend?: number;
-}> = React.memo(({ title, value, subtext, icon, trend }) => {
+}> = React.memo(({ title, value, icon, subtext, trend }) => {
   return (
     <Card>
       <CardContent className="pt-6">
@@ -314,6 +290,8 @@ const MetricCard: React.FC<{
     </Card>
   );
 });
+
+MetricCard.displayName = "MetricCard";
 
 // Account metrics component
 const AccountMetrics: React.FC<{ data: Ledger }> = React.memo(({ data }) => {
@@ -358,6 +336,8 @@ const AccountMetrics: React.FC<{ data: Ledger }> = React.memo(({ data }) => {
   );
 });
 
+AccountMetrics.displayName = "AccountMetrics";
+
 // Positions table component
 const PositionsTable: React.FC<{ positions: Position[] }> = React.memo(({ positions }) => {
   return (
@@ -401,5 +381,7 @@ const PositionsTable: React.FC<{ positions: Position[] }> = React.memo(({ positi
     </Card>
   );
 });
+
+PositionsTable.displayName = "PositionsTable";
 
 export default Dashboard;
