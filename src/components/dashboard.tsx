@@ -19,7 +19,7 @@ import { formatNumber } from '@/lib/formatNumber';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
-interface Position {
+interface PortfolioPosition {
   symbol: string;
   position: number;
   marketPrice: number;
@@ -41,7 +41,7 @@ interface Ledger {
 
 const Dashboard: React.FC = () => {
   const { toast } = useToast();
-  const [positions, setPositions] = useState<Position[]>([]);
+  const [positions, setPositions] = useState<PortfolioPosition[]>([]);
   const [ledger, setLedger] = useState<Ledger | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -230,7 +230,7 @@ const Dashboard: React.FC = () => {
             />
             <MetricCard
               title="Day Trades Available"
-              value={ledger?.dayTradesRemaining ?? 0}
+              value={String(ledger?.dayTradesRemaining ?? 0)}
               icon={<Activity className="h-4 w-4" />}
             />
           </div>
@@ -339,7 +339,7 @@ const AccountMetrics: React.FC<{ data: Ledger }> = React.memo(({ data }) => {
 AccountMetrics.displayName = "AccountMetrics";
 
 // Positions table component
-const PositionsTable: React.FC<{ positions: Position[] }> = React.memo(({ positions }) => {
+const PositionsTable: React.FC<{ positions: PortfolioPosition[] }> = React.memo(({ positions }) => {
   return (
     <Card>
       <CardHeader>
